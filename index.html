@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشروع الحاسب - داليا</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
+        #game-container { width: 100vw; height: 100vh; position: relative; display: flex; justify-content: center; align-items: center; background: #e0f2fe; }
+        .main-bg { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .screen { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5; }
+        .active { display: flex; }
+        .character-game { width: 280px; z-index: 6; position: absolute; bottom: 10%; transition: all 0.3s ease; }
+        .big-char { width: 350px; }
+        .dialogue-box { position: absolute; bottom: 20px; width: 90%; max-width: 600px; background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px; border: 4px solid #87ceeb; z-index: 100; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .menu-options button, .choices-list button { padding: 12px 25px; margin: 8px; cursor: pointer; border-radius: 25px; border: 2px solid #87ceeb; background: white; font-size: 16px; font-weight: bold; transition: 0.2s; color: #333; }
+        .menu-options button:hover, .choices-list button:hover { background: #87ceeb; color: white; transform: scale(1.05); }
+        #dialogue-text { font-size: 18px; margin-bottom: 15px; color: #444; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <img src="https://i.postimg.cc/xjtF3hmY/Untitled575-20260507075036.png" class="main-bg">
+        <div id="start-screen" class="screen active">
+            <div class="menu-options">
+                <button onclick="startGame()" id="start-btn">ابدأ</button>
+                <button onclick="showLanguageMenu()" id="lang-btn">اللغة</button>
+            </div>
+        </div>
+        <div id="language-screen" class="screen">
+            <div class="menu-options">
+                <button onclick="setLanguage('ar')">العربية</button>
+                <button onclick="setLanguage('en')">English</button>
+            </div>
+        </div>
+        <div id="game-play" class="screen">
+            <img src="https://i.postimg.cc/7PmQndzw/Untitled576-20260507074927.png" class="character-game big-char">
+            <div class="dialogue-box">
+                <p id="dialogue-text"></p>
+                <div id="choices-container" class="choices-list"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentLang = 'ar';
+        const gameData = {
+            ar: {
+                start: "ابدأ", lang: "اللغة",
+                intro: "أهلاً أنا داليا، وهاذي اللعبة من تصميم المبدعات: الهنوف العبداللطيف، نوره النهيان، عائشه الناجم، عائشه الصباطي، زهراء الحسيني، فاطمه الرستم، العقيله الجاسم.",
+                room: "هاذي غرفتي بسيطة جداً.. شرايك نلعب لعبة؟",
+                play: "يلا نلعب!", next: "التالي", rps_title: "اختر سلاحك:",
+                rock: "حجرة", paper: "ورقة", scissors: "مقص",
+                win: "كفووو! فزت علي 🥳", lose: "هاردلك، أنا فزت 😎", draw: "تعادل! مرة ثانية؟",
+                play_again: "لعب مرة ثانية", back_home: "العودة للبداية"
+            },
+            en: {
+                start: "Start", lang: "Language",
+                intro: "Hi, I'm Dalia. Designed by: Alhanouf Alabdullatif, Nora Alnahyan, Aisha Alnajem, Aisha Al-Sabati, Zahra Alhusseini, Fatima Alrustum, and Aqila Aljassim.",
+                room: "This is my room, it's very simple. Let's play a game!",
+                play: "Let's play!", next: "Next", rps_title: "Choose:",
+                rock: "Rock", paper: "Paper", scissors: "Scissors",
+                win: "Yay! You beat me 🥳", lose: "I won! 😎", draw: "Draw! Again?",
+                play_again: "Play Again", back_home: "Home"
+            }
+        };
+        function showLanguageMenu() { switchScreen('language-screen'); }
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('start-btn').innerText = gameData[lang].start;
+            document.getElementById('lang-btn').innerText = gameData[lang].lang;
+            switchScreen('start-screen');
+        }
+        function startGame() {
+            switchScreen('game-play');
+            showDialogue(gameData[currentLang].intro, [{ text: gameData[currentLang].next, action: showRoom }]);
+        }
+        function showRoom() {
+            showDialogue(gameData[currentLang].room, [{ text: gameData[currentLang].play, action: startRPSGame }]);
+        }
+        function startRPSGame() {
+            showDialogue(gameData[currentLang].rps_title, [
+                { text: gameData[currentLang].rock, action: () => playRPS('rock') },
+                { text: gameData[currentLang].paper, action: () => playRPS('paper') },
+                { text: gameData[currentLang].scissors, action: () => playRPS('scissors') }
+            ]);
+        }
+        function playRPS(userChoice) {
+            const choices = ['rock', 'paper', 'scissors'];
+            const botChoice = choices[Math.floor(Math.random() * 3)];
+            let result = (userChoice === botChoice) ? gameData[currentLang].draw :
+                         ((userChoice === 'rock' && botChoice === 'scissors') ||
+                          (userChoice === 'paper' && botChoice === 'rock') ||
+                          (userChoice === 'scissors' && botChoice === 'paper')) ? gameData[currentLang].win : gameData[currentLang].lose;
+            showDialogue(`${result} (داليا اختارت: ${gameData[currentLang][botChoice]})`, [
+                { text: gameData[currentLang].play_again, action: startRPSGame },
+                { text: gameData[currentLang].back_home, action: () => location.reload() }
+            ]);
+        }
+        function showDialogue(text, choices) {
+            document.getElementById('dialogue-text').innerText = text;
+            const container = document.getElementById('choices-container');
+            container.innerHTML = ""; 
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.innerText = choice.text;
+                btn.onclick = choice.action;
+                container.appendChild(btn);
+            });
+        }
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
